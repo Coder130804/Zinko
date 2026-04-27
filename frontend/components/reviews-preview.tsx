@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Star, ArrowRight } from 'lucide-react'
-import { useReviewsStore } from '@/frontend/lib/reviews-store'
+import { useReviewsStore } from '@/lib/reviews-store'
 
 export function ReviewsPreview() {
   const allReviews = useReviewsStore((state) => state.reviews)

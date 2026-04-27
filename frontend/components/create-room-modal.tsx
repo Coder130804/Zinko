@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Copy, ArrowRight, Check, Loader2 } from 'lucide-react'
-import { useRoomStore, generateRoomCode, getRandomColor } from '@/frontend/lib/store'
+import { useRoomStore, generateRoomCode, getRandomColor } from '@/lib/store'
 
 interface CreateRoomModalProps {
   isOpen: boolean

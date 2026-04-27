@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Smile } from 'lucide-react'
-import { useRoomStore, type Message } from '@/frontend/lib/store'
+import { useRoomStore, type Message } from '@/lib/store'
 
 const emojis = ['😂', '❤️', '🔥', '👏', '😍', '🎉', '💀', '😭', '🤣', '👀', '💯', '✨', '🙌', '😎', '🥺', '😤']
 

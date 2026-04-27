@@ -4,9 +4,9 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Copy, Check, LogOut, Zap, MessageCircle, X } from 'lucide-react'
-import { useRoomStore, getRandomColor } from '@/frontend/lib/store'
-import { VideoPlayer } from '@/frontend/components/video-player'
-import { ChatPanel } from '@/frontend/components/chat-panel'
+import { useRoomStore, getRandomColor } from '@/lib/store'
+import { VideoPlayer } from '@/components/video-player'
+import { ChatPanel } from '@/components/chat-panel'
 import Link from 'next/link'
 
 export default function RoomPage() {

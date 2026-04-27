@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star, Zap, ArrowLeft, X, Loader2 } from 'lucide-react'
-import { useReviewsStore, type Review } from '@/frontend/lib/reviews-store'
+import { useReviewsStore, type Review } from '@/lib/reviews-store'
 
 const ratingLabels = ['Poor', 'Fair', 'Good', 'Great', 'Amazing']
 

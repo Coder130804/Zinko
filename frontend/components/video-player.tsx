@@ -4,7 +4,7 @@ import { useRef, useState, useCallback, useEffect } from 'react'
 import YouTube, { YouTubePlayer } from 'react-youtube'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Play, Pause, Upload, Search, X, Loader2 } from 'lucide-react'
-import { useRoomStore } from '@/frontend/lib/store'
+import { useRoomStore } from '@/lib/store'
 
 const mockSearchResults = [
   { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up', channel: 'Rick Astley', duration: '3:33', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg' },
