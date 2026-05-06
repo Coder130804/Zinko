@@ -16,7 +16,7 @@ export function CreateRoomModal({ isOpen, onClose }: CreateRoomModalProps) {
   const setRoom = useRoomStore((state) => state.setRoom)
   const setCurrentUser = useRoomStore((state) => state.setCurrentUser)
   const addUser = useRoomStore((state) => state.addUser)
-  
+
   const [name, setName] = useState('')
   const [isCreating, setIsCreating] = useState(false)
   const [created, setCreated] = useState(false)
@@ -25,15 +25,15 @@ export function CreateRoomModal({ isOpen, onClose }: CreateRoomModalProps) {
 
   const handleCreate = async () => {
     if (!name.trim()) return
-    
+
     setIsCreating(true)
     await new Promise(resolve => setTimeout(resolve, 800))
-    
+
     const code = generateRoomCode()
     const roomId = code.toLowerCase().replace('-', '')
     setRoomCode(code)
     setRoom(roomId, code)
-    
+
     const user = {
       id: crypto.randomUUID(),
       name: name.trim(),
@@ -41,7 +41,7 @@ export function CreateRoomModal({ isOpen, onClose }: CreateRoomModalProps) {
     }
     setCurrentUser(user)
     addUser(user)
-    
+
     setIsCreating(false)
     setCreated(true)
   }

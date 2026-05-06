@@ -16,7 +16,7 @@ export function JoinRoomModal({ isOpen, onClose }: JoinRoomModalProps) {
   const setRoom = useRoomStore((state) => state.setRoom)
   const setCurrentUser = useRoomStore((state) => state.setCurrentUser)
   const addUser = useRoomStore((state) => state.addUser)
-  
+
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
   const [isJoining, setIsJoining] = useState(false)
@@ -24,19 +24,19 @@ export function JoinRoomModal({ isOpen, onClose }: JoinRoomModalProps) {
 
   const handleJoin = async () => {
     if (!name.trim() || !code.trim()) return
-    
+
     setIsJoining(true)
     setError('')
-    
+
     await new Promise(resolve => setTimeout(resolve, 500))
-    
-    const formattedCode = code.toUpperCase().includes('ZNK-') 
-      ? code.toUpperCase() 
+
+    const formattedCode = code.toUpperCase().includes('ZNK-')
+      ? code.toUpperCase()
       : `ZNK-${code.toUpperCase()}`
-    
+
     const roomId = formattedCode.toLowerCase().replace('-', '')
     setRoom(roomId, formattedCode)
-    
+
     const user = {
       id: crypto.randomUUID(),
       name: name.trim(),
@@ -44,7 +44,7 @@ export function JoinRoomModal({ isOpen, onClose }: JoinRoomModalProps) {
     }
     setCurrentUser(user)
     addUser(user)
-    
+
     setIsJoining(false)
     router.push(`/room/${roomId}`)
     onClose()

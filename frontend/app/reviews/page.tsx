@@ -18,11 +18,11 @@ export default function ReviewsPage() {
   const [text, setText] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const averageRating = useMemo(() => 
+  const averageRating = useMemo(() =>
     reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
   , [reviews])
-  
-  const ratingDistribution = useMemo(() => 
+
+  const ratingDistribution = useMemo(() =>
     [5, 4, 3, 2, 1].map(r => ({
       rating: r,
       count: reviews.filter(review => review.rating === r).length,
@@ -32,19 +32,19 @@ export default function ReviewsPage() {
 
   const handleSubmit = async () => {
     if (!name.trim() || !text.trim()) return
-    
+
     setSubmitting(true)
     await new Promise(resolve => setTimeout(resolve, 500))
-    
+
     const colors = ['#14b8a6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316']
-    
+
     addReview({
       name: name.trim(),
       rating,
       text: text.trim(),
       color: colors[Math.floor(Math.random() * colors.length)]
     })
-    
+
     setName('')
     setRating(5)
     setText('')
@@ -63,8 +63,8 @@ export default function ReviewsPage() {
             </div>
             <span className="font-bold text-lg">Zinko</span>
           </Link>
-          
-          <Link 
+
+          <Link
             href="/"
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
@@ -101,15 +101,15 @@ export default function ReviewsPage() {
               <div className="text-6xl font-bold mb-2">{averageRating.toFixed(1)}</div>
               <div className="flex items-center justify-center md:justify-start gap-1 mb-2">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star 
-                    key={i} 
-                    className={`w-6 h-6 ${i < Math.round(averageRating) ? 'text-accent fill-accent' : 'text-muted-foreground/30'}`} 
+                  <Star
+                    key={i}
+                    className={`w-6 h-6 ${i < Math.round(averageRating) ? 'text-accent fill-accent' : 'text-muted-foreground/30'}`}
                   />
                 ))}
               </div>
               <p className="text-muted-foreground">Based on {reviews.length} reviews</p>
             </div>
-            
+
             <div className="space-y-3">
               {ratingDistribution.map(({ rating, count, percentage }) => (
                 <div key={rating} className="flex items-center gap-3">
@@ -128,7 +128,7 @@ export default function ReviewsPage() {
               ))}
             </div>
           </div>
-          
+
           <div className="mt-8 pt-8 border-t border-border/50 text-center">
             <button
               onClick={() => setShowModal(true)}
@@ -186,7 +186,7 @@ export default function ReviewsPage() {
                       className="w-full px-4 py-3 bg-secondary rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm text-muted-foreground mb-2">Rating</label>
                     <div className="flex items-center gap-2">
@@ -198,12 +198,12 @@ export default function ReviewsPage() {
                           onMouseLeave={() => setHoverRating(0)}
                           className="p-1 transition-transform hover:scale-110"
                         >
-                          <Star 
+                          <Star
                             className={`w-8 h-8 ${
-                              r <= (hoverRating || rating) 
-                                ? 'text-accent fill-accent' 
+                              r <= (hoverRating || rating)
+                                ? 'text-accent fill-accent'
                                 : 'text-muted-foreground/30'
-                            }`} 
+                            }`}
                           />
                         </button>
                       ))}
@@ -212,7 +212,7 @@ export default function ReviewsPage() {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm text-muted-foreground mb-2">Your Review</label>
                     <textarea
@@ -223,7 +223,7 @@ export default function ReviewsPage() {
                       className="w-full px-4 py-3 bg-secondary rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
                     />
                   </div>
-                  
+
                   <button
                     onClick={handleSubmit}
                     disabled={!name.trim() || !text.trim() || submitting}
@@ -257,7 +257,7 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
       className="glass-card rounded-2xl p-6"
     >
       <div className="flex items-center gap-3 mb-4">
-        <div 
+        <div
           className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium"
           style={{ backgroundColor: review.color + '20', color: review.color }}
         >
@@ -268,9 +268,9 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
           <div className="flex items-center gap-2">
             <div className="flex gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Star 
-                  key={i} 
-                  className={`w-3 h-3 ${i < review.rating ? 'text-accent fill-accent' : 'text-muted-foreground/30'}`} 
+                <Star
+                  key={i}
+                  className={`w-3 h-3 ${i < review.rating ? 'text-accent fill-accent' : 'text-muted-foreground/30'}`}
                 />
               ))}
             </div>

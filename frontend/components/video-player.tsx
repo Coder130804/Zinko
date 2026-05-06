@@ -19,7 +19,7 @@ export function VideoPlayer() {
   const playerRef = useRef<YouTubePlayer | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
   const videoUrl = useRoomStore((state) => state.videoUrl)
   const isPlaying = useRoomStore((state) => state.isPlaying)
   const pausedBy = useRoomStore((state) => state.pausedBy)
@@ -28,7 +28,7 @@ export function VideoPlayer() {
   const setPlaying = useRoomStore((state) => state.setPlaying)
   const setCurrentTime = useRoomStore((state) => state.setCurrentTime)
   const users = useRoomStore((state) => state.users)
-  
+
   const [searchQuery, setSearchQuery] = useState('')
   const [showResults, setShowResults] = useState(false)
   const [searching, setSearching] = useState(false)
@@ -41,7 +41,7 @@ export function VideoPlayer() {
     if (!searchQuery.trim()) return
     setSearching(true)
     await new Promise(resolve => setTimeout(resolve, 600))
-    const filtered = mockSearchResults.filter(r => 
+    const filtered = mockSearchResults.filter(r =>
       r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.channel.toLowerCase().includes(searchQuery.toLowerCase())
     )

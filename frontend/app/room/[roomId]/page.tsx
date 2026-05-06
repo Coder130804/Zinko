@@ -13,7 +13,7 @@ export default function RoomPage() {
   const params = useParams()
   const router = useRouter()
   const roomId = params.roomId as string
-  
+
   const roomCode = useRoomStore((state) => state.roomCode)
   const currentUser = useRoomStore((state) => state.currentUser)
   const videoTitle = useRoomStore((state) => state.videoTitle)
@@ -21,7 +21,7 @@ export default function RoomPage() {
   const setCurrentUser = useRoomStore((state) => state.setCurrentUser)
   const addUser = useRoomStore((state) => state.addUser)
   const leaveRoom = useRoomStore((state) => state.leaveRoom)
-  
+
   const [copied, setCopied] = useState(false)
   const [showChat, setShowChat] = useState(false)
   const [showNameModal, setShowNameModal] = useState(!currentUser)
@@ -38,10 +38,10 @@ export default function RoomPage() {
 
   const handleJoinRoom = () => {
     if (!name.trim()) return
-    
+
     const code = `ZNK-${roomId.slice(3).toUpperCase()}`
     setRoom(roomId, code)
-    
+
     const user = {
       id: crypto.randomUUID(),
       name: name.trim(),
@@ -77,12 +77,12 @@ export default function RoomPage() {
             </div>
             <span className="font-bold text-lg">Zinko</span>
           </div>
-          
+
           <h2 className="text-xl font-semibold mb-2">Join the Room</h2>
           <p className="text-muted-foreground text-sm mb-6">
             Enter your name to join the watch party
           </p>
-          
+
           <input
             type="text"
             value={name}
@@ -92,7 +92,7 @@ export default function RoomPage() {
             onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
             autoFocus
           />
-          
+
           <button
             onClick={handleJoinRoom}
             disabled={!name.trim()}
@@ -120,7 +120,7 @@ export default function RoomPage() {
             {roomCode || 'ZNK-XXXX'}
           </span>
         </div>
-        
+
         {videoTitle && (
           <div className="hidden md:block flex-1 text-center px-4">
             <span className="text-sm text-muted-foreground truncate block max-w-md mx-auto">
@@ -128,7 +128,7 @@ export default function RoomPage() {
             </span>
           </div>
         )}
-        
+
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowChat(!showChat)}
@@ -168,12 +168,12 @@ export default function RoomPage() {
         <div className="flex-1 flex flex-col">
           <VideoPlayer />
         </div>
-        
+
         {/* Chat Panel - Desktop */}
         <div className="hidden md:flex w-80 lg:w-96">
           <ChatPanel />
         </div>
-        
+
         {/* Chat Panel - Mobile Drawer */}
         {showChat && (
           <motion.div
@@ -182,7 +182,7 @@ export default function RoomPage() {
             exit={{ x: '100%' }}
             className="fixed inset-0 z-50 md:hidden"
           >
-            <div 
+            <div
               className="absolute inset-0 bg-background/80 backdrop-blur-sm"
               onClick={() => setShowChat(false)}
             />

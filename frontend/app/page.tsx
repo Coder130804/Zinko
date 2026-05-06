@@ -19,27 +19,27 @@ export default function HomePage() {
   return (
     <main className="min-h-screen">
       <Navbar onCreateRoom={() => setCreateModalOpen(true)} />
-      <Hero 
+      <Hero
         onCreateRoom={() => setCreateModalOpen(true)}
         onJoinRoom={() => setJoinModalOpen(true)}
       />
       <HowItWorks />
       <Features />
-      <LiveStats 
+      <LiveStats
         onCreateRoom={() => setCreateModalOpen(true)}
         onJoinRoom={() => setJoinModalOpen(true)}
       />
       <ReviewsPreview />
       <ComingSoon />
       <Footer />
-      
-      <CreateRoomModal 
-        isOpen={createModalOpen} 
-        onClose={() => setCreateModalOpen(false)} 
+
+      <CreateRoomModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
       />
-      <JoinRoomModal 
-        isOpen={joinModalOpen} 
-        onClose={() => setJoinModalOpen(false)} 
+      <JoinRoomModal
+        isOpen={joinModalOpen}
+        onClose={() => setJoinModalOpen(false)}
       />
     </main>
   )

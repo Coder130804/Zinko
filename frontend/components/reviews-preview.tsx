@@ -36,7 +36,7 @@ export function ReviewsPreview() {
             >
               <div className="glass-card rounded-2xl p-6 h-full">
                 <div className="flex items-center gap-3 mb-4">
-                  <div 
+                  <div
                     className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium"
                     style={{ backgroundColor: review.color + '20', color: review.color }}
                   >
@@ -46,9 +46,9 @@ export function ReviewsPreview() {
                     <div className="font-medium text-sm">{review.name}</div>
                     <div className="flex gap-0.5">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star 
-                          key={i} 
-                          className={`w-3 h-3 ${i < review.rating ? 'text-accent fill-accent' : 'text-muted-foreground/30'}`} 
+                        <Star
+                          key={i}
+                          className={`w-3 h-3 ${i < review.rating ? 'text-accent fill-accent' : 'text-muted-foreground/30'}`}
                         />
                       ))}
                     </div>
@@ -69,7 +69,7 @@ export function ReviewsPreview() {
           transition={{ delay: 0.4, duration: 0.5 }}
           className="mt-12 text-center"
         >
-          <Link 
+          <Link
             href="/reviews"
             className="inline-flex items-center gap-2 text-primary hover:gap-3 transition-all"
           >

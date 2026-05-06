@@ -26,7 +26,7 @@ export function ChatPanel() {
 
   const handleSend = () => {
     if (!newMessage.trim() || !currentUser) return
-    
+
     addMessage({
       id: crypto.randomUUID(),
       userId: currentUser.id,
@@ -94,7 +94,7 @@ export function ChatPanel() {
               </motion.div>
             )}
           </AnimatePresence>
-          
+
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowEmojis(!showEmojis)}
@@ -144,7 +144,7 @@ function MessageBubble({ message, currentUser }: { message: Message; currentUser
       animate={{ opacity: 1, y: 0 }}
       className={`flex items-start gap-2 ${isOwn ? 'flex-row-reverse' : ''}`}
     >
-      <div 
+      <div
         className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0"
         style={{ backgroundColor: userColor + '20', color: userColor }}
       >
@@ -158,8 +158,8 @@ function MessageBubble({ message, currentUser }: { message: Message; currentUser
           </span>
         </div>
         <div className={`px-3 py-2 rounded-2xl text-sm ${
-          isOwn 
-            ? 'bg-primary text-primary-foreground rounded-tr-sm' 
+          isOwn
+            ? 'bg-primary text-primary-foreground rounded-tr-sm'
             : 'bg-secondary text-foreground rounded-tl-sm'
         }`}>
           {message.content}
