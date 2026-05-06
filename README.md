@@ -17,18 +17,18 @@
 
 </div>
 
-## ✨ Features
+##  Features
 
-- 🎬 **Synchronized Playback** — Play, pause, and seek stay in sync for everyone in the room
-- 🏠 **Instant Rooms** — Create a room in seconds, share a `ZNK-XXXX` code with friends
-- 💬 **Live Room Chat** — Real-time messaging while you watch
-- 📺 **YouTube Search** — Search and queue YouTube videos directly in the room
-- 📁 **File Upload** — Upload your own video files to watch together
-- 👥 **Live Presence** — See who's watching with a live viewer count
+-  **Synchronized Playback** — Play, pause, and seek stay in sync for everyone in the room
+-  **Instant Rooms** — Create a room in seconds, share a `ZNK-XXXX` code with friends
+-  **Live Room Chat** — Real-time messaging while you watch
+-  **YouTube Search** — Search and queue YouTube videos directly in the room
+-  **File Upload** — Upload your own video files to watch together
+-  **Live Presence** — See who's watching with a live viewer count
 
 ---
 
-## 🏗️ Project Structure
+##  Project Structure
 
 ```
 Zinko/
@@ -83,12 +83,12 @@ npm run dev
 cd frontend
 npm install
 npm run dev
-# ✨ Running on http://localhost:3000
+#  Running on http://localhost:3000
 ```
 
 ---
 
-## 📡 Socket Events
+##  Socket Events
 
 The backend communicates entirely through Socket.IO events.
 
@@ -117,7 +117,7 @@ The backend communicates entirely through Socket.IO events.
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Tech |
 |---|---|
@@ -128,7 +128,7 @@ The backend communicates entirely through Socket.IO events.
 
 ---
 
-## 🗺️ Roadmap
+##  Roadmap
 
 - [x] Room creation & joining
 - [x] Real-time chat
@@ -140,7 +140,7 @@ The backend communicates entirely through Socket.IO events.
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! Feel free to open an issue or submit a pull request.
 
@@ -154,7 +154,7 @@ git push origin feature/your-feature
 
 ---
 
-## 📄 License
+##  License
 
 MIT License © 2026 Zinko
 
