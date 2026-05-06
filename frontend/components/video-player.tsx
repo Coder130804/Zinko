@@ -4,7 +4,7 @@ import { useRef, useState, useCallback, useEffect } from 'react'
 import YouTube, { YouTubePlayer } from 'react-youtube'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Play, Pause, Upload, Search, X, Loader2 } from 'lucide-react'
-import { useRoomStore } from '@/frontend/lib/store'
+import { useRoomStore } from '@/lib/store'
 
 const mockSearchResults = [
   { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up', channel: 'Rick Astley', duration: '3:33', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg' },
@@ -19,7 +19,7 @@ export function VideoPlayer() {
   const playerRef = useRef<YouTubePlayer | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
   const videoUrl = useRoomStore((state) => state.videoUrl)
   const isPlaying = useRoomStore((state) => state.isPlaying)
   const pausedBy = useRoomStore((state) => state.pausedBy)
@@ -28,7 +28,7 @@ export function VideoPlayer() {
   const setPlaying = useRoomStore((state) => state.setPlaying)
   const setCurrentTime = useRoomStore((state) => state.setCurrentTime)
   const users = useRoomStore((state) => state.users)
-  
+
   const [searchQuery, setSearchQuery] = useState('')
   const [showResults, setShowResults] = useState(false)
   const [searching, setSearching] = useState(false)
@@ -41,7 +41,7 @@ export function VideoPlayer() {
     if (!searchQuery.trim()) return
     setSearching(true)
     await new Promise(resolve => setTimeout(resolve, 600))
-    const filtered = mockSearchResults.filter(r => 
+    const filtered = mockSearchResults.filter(r =>
       r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.channel.toLowerCase().includes(searchQuery.toLowerCase())
     )

@@ -1,16 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Navbar } from '@/frontend/components/navbar'
-import { Hero } from '@/frontend/components/hero'
-import { HowItWorks } from '@/frontend/components/how-it-works'
-import { Features } from '@/frontend/components/features'
-import { LiveStats } from '@/frontend/components/live-stats'
-import { ReviewsPreview } from '@/frontend/components/reviews-preview'
-import { ComingSoon } from '@/frontend/components/coming-soon'
-import { Footer } from '@/frontend/components/footer'
-import { CreateRoomModal } from '@/frontend/components/create-room-modal'
-import { JoinRoomModal } from '@/frontend/components/join-room-modal'
+import { Navbar } from '@/components/navbar'
+import { Hero } from '@/components/hero'
+import { HowItWorks } from '@/components/how-it-works'
+import { Features } from '@/components/features'
+import { LiveStats } from '@/components/live-stats'
+import { ReviewsPreview } from '@/components/reviews-preview'
+import { ComingSoon } from '@/components/coming-soon'
+import { Footer } from '@/components/footer'
+import { CreateRoomModal } from '@/components/create-room-modal'
+import { JoinRoomModal } from '@/components/join-room-modal'
 
 export default function HomePage() {
   const [createModalOpen, setCreateModalOpen] = useState(false)
@@ -19,27 +19,27 @@ export default function HomePage() {
   return (
     <main className="min-h-screen">
       <Navbar onCreateRoom={() => setCreateModalOpen(true)} />
-      <Hero 
+      <Hero
         onCreateRoom={() => setCreateModalOpen(true)}
         onJoinRoom={() => setJoinModalOpen(true)}
       />
       <HowItWorks />
       <Features />
-      <LiveStats 
+      <LiveStats
         onCreateRoom={() => setCreateModalOpen(true)}
         onJoinRoom={() => setJoinModalOpen(true)}
       />
       <ReviewsPreview />
       <ComingSoon />
       <Footer />
-      
-      <CreateRoomModal 
-        isOpen={createModalOpen} 
-        onClose={() => setCreateModalOpen(false)} 
+
+      <CreateRoomModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
       />
-      <JoinRoomModal 
-        isOpen={joinModalOpen} 
-        onClose={() => setJoinModalOpen(false)} 
+      <JoinRoomModal
+        isOpen={joinModalOpen}
+        onClose={() => setJoinModalOpen(false)}
       />
     </main>
   )
