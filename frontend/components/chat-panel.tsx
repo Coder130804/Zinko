@@ -58,7 +58,7 @@ export function ChatPanel() {
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center">
             <p className="text-sm text-muted-foreground text-center">
-              No messages yet.<br />Start the conversation!
+              No messages yet.<br />Start the conversation!!
             </p>
           </div>
         ) : (
