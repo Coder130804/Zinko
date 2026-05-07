@@ -80,7 +80,7 @@ export default function RoomPage() {
 
           <h2 className="text-xl font-semibold mb-2">Join the Room</h2>
           <p className="text-muted-foreground text-sm mb-6">
-            Enter your name to join the watch party
+            Enter your name to join the watch party and enjoy
           </p>
 
           <input
