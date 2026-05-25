@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ArrowRight, Loader2 } from 'lucide-react'
 import { useRoomStore, getRandomColor } from '@/lib/store'
+import socket from '@/lib/socket'
 
 interface JoinRoomModalProps {
   isOpen: boolean
@@ -22,32 +23,38 @@ export function JoinRoomModal({ isOpen, onClose }: JoinRoomModalProps) {
   const [isJoining, setIsJoining] = useState(false)
   const [error, setError] = useState('')
 
-  const handleJoin = async () => {
+  const handleJoin = () => {
     if (!name.trim() || !code.trim()) return
-
     setIsJoining(true)
     setError('')
 
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    const formattedCode = code.toUpperCase().includes('ZNK-')
+    const formattedCode = code.toUpperCase().startsWith('ZNK-')
       ? code.toUpperCase()
       : `ZNK-${code.toUpperCase()}`
 
-    const roomId = formattedCode.toLowerCase().replace('-', '')
-    setRoom(roomId, formattedCode)
+    socket.connect()
+    socket.emit('room:join', { name: name.trim(), code: formattedCode })
 
-    const user = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      color: getRandomColor()
-    }
-    setCurrentUser(user)
-    addUser(user)
+    socket.once('room:joined', ({ room }) => {
+      const user = {
+        id: socket.id!,
+        name: name.trim(),
+        color: getRandomColor(),
+      }
+      setCurrentUser(user)
+      addUser(user)
 
-    setIsJoining(false)
-    router.push(`/room/${roomId}`)
-    onClose()
+      const rid = room.code.replace('-', '').toLowerCase()
+      setRoom(rid, room.code)
+      setIsJoining(false)
+      router.push(`/room/${rid}`)
+      onClose()
+    })
+
+    socket.once('room:error', ({ message }) => {
+      setError(message)   // shows "Room not found" under the input
+      setIsJoining(false)
+    })
   }
 
   const handleClose = () => {
@@ -59,12 +66,7 @@ export function JoinRoomModal({ isOpen, onClose }: JoinRoomModalProps) {
 
   const formatCode = (value: string) => {
     const cleaned = value.replace(/[^a-zA-Z0-9-]/g, '').toUpperCase()
-    if (cleaned.startsWith('ZNK-')) {
-      return cleaned.slice(0, 8)
-    }
-    if (cleaned.length <= 4) {
-      return cleaned
-    }
+    if (cleaned.startsWith('ZNK-')) return cleaned.slice(0, 8)
     return cleaned.slice(0, 4)
   }
 

@@ -22,6 +22,7 @@ const io = new Server(server, {
 // REST: health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
+
 // Socket.IO
 io.on("connection", (socket) => {
   console.log(`[+] Socket connected: ${socket.id}`);
