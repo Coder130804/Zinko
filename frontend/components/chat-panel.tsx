@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Smile } from 'lucide-react'
 import { useRoomStore, type Message } from '@/lib/store'
+import socket from '@/lib/socket'
 
 const emojis = ['😂', '❤️', '🔥', '👏', '😍', '🎉', '💀', '😭', '🤣', '👀', '💯', '✨', '🙌', '😎', '🥺', '😤']
 
@@ -12,35 +13,58 @@ export function ChatPanel() {
   const users = useRoomStore((state) => state.users)
   const currentUser = useRoomStore((state) => state.currentUser)
   const addMessage = useRoomStore((state) => state.addMessage)
+
   const [newMessage, setNewMessage] = useState('')
   const [showEmojis, setShowEmojis] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
+  // Auto scroll on new messages
   useEffect(() => {
-    scrollToBottom()
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Listen for incoming messages from other users
+  useEffect(() => {
+    const handleIncoming = (msg: { id: string; name: string; text: string; timestamp: string }) => {
+      // Skip if it's our own message (we already added it optimistically)
+      if (msg.name === currentUser?.name) return
+
+      addMessage({
+        id: msg.id,
+        userId: msg.name,
+        userName: msg.name,
+        content: msg.text,
+        timestamp: new Date(msg.timestamp),
+        type: 'user',
+      })
+    }
+
+    socket.on('chat:message', handleIncoming)
+    return () => { socket.off('chat:message', handleIncoming) }
+  }, [currentUser, addMessage])
 
   const handleSend = () => {
     if (!newMessage.trim() || !currentUser) return
 
+    // Optimistically show in our own UI right away
     addMessage({
       id: crypto.randomUUID(),
       userId: currentUser.id,
       userName: currentUser.name,
       content: newMessage.trim(),
       timestamp: new Date(),
-      type: 'user'
+      type: 'user',
     })
+
+    // Send to backend → broadcast to everyone else
+    socket.emit('chat:message', { text: newMessage.trim() })
+
     setNewMessage('')
     setShowEmojis(false)
   }
 
   const handleEmojiClick = (emoji: string) => {
-    setNewMessage(prev => prev + emoji)
+    setNewMessage((prev) => prev + emoji)
   }
 
   return (
@@ -124,7 +148,13 @@ export function ChatPanel() {
   )
 }
 
-function MessageBubble({ message, currentUser }: { message: Message; currentUser: { id: string; name: string; color: string } | null }) {
+function MessageBubble({
+  message,
+  currentUser,
+}: {
+  message: Message
+  currentUser: { id: string; name: string; color: string } | null
+}) {
   const isSystem = message.type === 'system'
   const isOwn = message.userId === currentUser?.id
 
@@ -148,7 +178,7 @@ function MessageBubble({ message, currentUser }: { message: Message; currentUser
         className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0"
         style={{ backgroundColor: userColor + '20', color: userColor }}
       >
-        {message.userName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+        {message.userName.split(' ').map((n) => n[0]).join('').slice(0, 2)}
       </div>
       <div className={`max-w-[75%] ${isOwn ? 'items-end' : 'items-start'}`}>
         <div className="flex items-center gap-2 mb-1">
@@ -157,11 +187,13 @@ function MessageBubble({ message, currentUser }: { message: Message; currentUser
             {formatTimeDisplay(message.timestamp)}
           </span>
         </div>
-        <div className={`px-3 py-2 rounded-2xl text-sm ${
-          isOwn
-            ? 'bg-primary text-primary-foreground rounded-tr-sm'
-            : 'bg-secondary text-foreground rounded-tl-sm'
-        }`}>
+        <div
+          className={`px-3 py-2 rounded-2xl text-sm ${
+            isOwn
+              ? 'bg-primary text-primary-foreground rounded-tr-sm'
+              : 'bg-secondary text-foreground rounded-tl-sm'
+          }`}
+        >
           {message.content}
         </div>
       </div>
@@ -173,6 +205,6 @@ function formatTimeDisplay(date: Date) {
   return new Date(date).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
   })
 }

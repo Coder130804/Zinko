@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Copy, ArrowRight, Check, Loader2 } from 'lucide-react'
-import { useRoomStore, generateRoomCode, getRandomColor } from '@/lib/store'
+import { useRoomStore, getRandomColor } from '@/lib/store'
+import socket from '@/lib/socket'
 
 interface CreateRoomModalProps {
   isOpen: boolean
@@ -21,39 +22,49 @@ export function CreateRoomModal({ isOpen, onClose }: CreateRoomModalProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [created, setCreated] = useState(false)
   const [roomCode, setRoomCode] = useState('')
+  const [roomId, setRoomId] = useState('')
   const [copied, setCopied] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleCreate = async () => {
+  const handleCreate = () => {
     if (!name.trim()) return
-
     setIsCreating(true)
-    await new Promise(resolve => setTimeout(resolve, 800))
+    setError('')
 
-    const code = generateRoomCode()
-    const roomId = code.toLowerCase().replace('-', '')
-    setRoomCode(code)
-    setRoom(roomId, code)
+    socket.connect()
+    socket.emit('room:create', { name: name.trim() })
 
-    const user = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      color: getRandomColor()
-    }
-    setCurrentUser(user)
-    addUser(user)
+    socket.once('room:created', ({ room }) => {
+      const user = {
+        id: socket.id!,
+        name: name.trim(),
+        color: getRandomColor(),
+      }
+      setCurrentUser(user)
+      addUser(user)
 
-    setIsCreating(false)
-    setCreated(true)
+      const rid = room.code.replace('-', '').toLowerCase()
+      setRoom(rid, room.code)
+      setRoomCode(room.code)
+      setRoomId(rid)
+      setIsCreating(false)
+      setCreated(true)
+    })
+
+    socket.once('room:error', ({ message }) => {
+      setError(message)
+      setIsCreating(false)
+    })
   }
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/room/${roomCode.toLowerCase().replace('-', '')}`)
+    navigator.clipboard.writeText(`${window.location.origin}/room/${roomId}`)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
   const handleEnter = () => {
-    router.push(`/room/${roomCode.toLowerCase().replace('-', '')}`)
+    router.push(`/room/${roomId}`)
     onClose()
   }
 
@@ -61,6 +72,8 @@ export function CreateRoomModal({ isOpen, onClose }: CreateRoomModalProps) {
     setName('')
     setCreated(false)
     setRoomCode('')
+    setRoomId('')
+    setError('')
     onClose()
   }
 
@@ -109,6 +122,7 @@ export function CreateRoomModal({ isOpen, onClose }: CreateRoomModalProps) {
                       onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
                     />
                   </div>
+                  {error && <p className="text-sm text-destructive">{error}</p>}
                   <button
                     onClick={handleCreate}
                     disabled={!name.trim() || isCreating}

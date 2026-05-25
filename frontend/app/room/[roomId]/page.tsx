@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Copy, Check, LogOut, Zap, MessageCircle, X } from 'lucide-react'
 import { useRoomStore, getRandomColor } from '@/lib/store'
 import { VideoPlayer } from '@/components/video-player'
 import { ChatPanel } from '@/components/chat-panel'
+import socket from '@/lib/socket'
 import Link from 'next/link'
 
 export default function RoomPage() {
@@ -20,36 +21,70 @@ export default function RoomPage() {
   const setRoom = useRoomStore((state) => state.setRoom)
   const setCurrentUser = useRoomStore((state) => state.setCurrentUser)
   const addUser = useRoomStore((state) => state.addUser)
+  const addMessage = useRoomStore((state) => state.addMessage)
   const leaveRoom = useRoomStore((state) => state.leaveRoom)
 
   const [copied, setCopied] = useState(false)
   const [showChat, setShowChat] = useState(false)
   const [showNameModal, setShowNameModal] = useState(!currentUser)
   const [name, setName] = useState('')
-  const hasSetRoom = useRef(false)
 
+  // Listen for other users joining / leaving
   useEffect(() => {
-    if (currentUser && !roomCode && !hasSetRoom.current) {
-      hasSetRoom.current = true
-      const code = `ZNK-${roomId.slice(3, 7).toUpperCase()}`
-      setRoom(roomId, code)
-    }
-  }, [currentUser, roomCode, roomId, setRoom])
+    socket.on('user:joined', ({ name: joinedName }: { name: string }) => {
+      addMessage({
+        id: crypto.randomUUID(),
+        userId: 'system',
+        userName: 'System',
+        content: `${joinedName} joined the room`,
+        timestamp: new Date(),
+        type: 'system',
+      })
+    })
 
+    socket.on('user:left', ({ name: leftName }: { name: string }) => {
+      addMessage({
+        id: crypto.randomUUID(),
+        userId: 'system',
+        userName: 'System',
+        content: `${leftName} left the room`,
+        timestamp: new Date(),
+        type: 'system',
+      })
+    })
+
+    return () => {
+      socket.off('user:joined')
+      socket.off('user:left')
+    }
+  }, [addMessage])
+
+  // Handle someone opening the room link directly (no currentUser in store yet)
   const handleJoinRoom = () => {
     if (!name.trim()) return
 
-    const code = `ZNK-${roomId.slice(3).toUpperCase()}`
-    setRoom(roomId, code)
+    const formattedCode = `ZNK-${roomId.slice(3).toUpperCase()}`
 
-    const user = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      color: getRandomColor()
-    }
-    setCurrentUser(user)
-    addUser(user)
-    setShowNameModal(false)
+    socket.connect()
+    socket.emit('room:join', { name: name.trim(), code: formattedCode })
+
+    socket.once('room:joined', ({ room }) => {
+      const user = {
+        id: socket.id!,
+        name: name.trim(),
+        color: getRandomColor(),
+      }
+      setCurrentUser(user)
+      addUser(user)
+      setRoom(room.id, room.code)
+      setShowNameModal(false)
+    })
+
+    socket.once('room:error', ({ message }) => {
+      // Room not found — send back to home
+      alert(message)
+      router.push('/')
+    })
   }
 
   const handleCopyLink = () => {
@@ -59,6 +94,8 @@ export default function RoomPage() {
   }
 
   const handleLeave = () => {
+    socket.emit('room:leave')
+    socket.disconnect()
     leaveRoom()
     router.push('/')
   }
@@ -164,17 +201,16 @@ export default function RoomPage() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Video Player */}
         <div className="flex-1 flex flex-col">
           <VideoPlayer />
         </div>
 
-        {/* Chat Panel - Desktop */}
+        {/* Chat - Desktop */}
         <div className="hidden md:flex w-80 lg:w-96">
           <ChatPanel />
         </div>
 
-        {/* Chat Panel - Mobile Drawer */}
+        {/* Chat - Mobile Drawer */}
         {showChat && (
           <motion.div
             initial={{ x: '100%' }}
