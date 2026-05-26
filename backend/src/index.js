@@ -3,8 +3,9 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const { roomManager } = require("./roomManager");
-const { registerRoomHandlers } = require("./handlers/roomHandler");
-const { registerChatHandlers } = require("./handlers/chatHandler");
+const { registerRoomHandlers } = require("./handlers/roomHandlers");
+const { registerChatHandlers } = require("./handlers/chatHandlers");
+const { registerVideoHandlers } = require("./handlers/videoHandlers");
 
 const app = express();
 app.use(cors());
@@ -14,25 +15,22 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*", // change to your frontend URL in production
+    origin: "*", // update to your Vercel URL in production
     methods: ["GET", "POST"],
   },
 });
 
-// REST: health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
-
-// Socket.IO
 io.on("connection", (socket) => {
   console.log(`[+] Socket connected: ${socket.id}`);
 
   registerRoomHandlers(io, socket, roomManager);
   registerChatHandlers(io, socket, roomManager);
+  registerVideoHandlers(io, socket, roomManager);
 
   socket.on("disconnect", () => {
     console.log(`[-] Socket disconnected: ${socket.id}`);
-    // Remove user from whatever room they were in
     const room = roomManager.getRoomBySocketId(socket.id);
     if (room) {
       const user = room.users.find((u) => u.socketId === socket.id);
@@ -49,5 +47,5 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
-  console.log(` Zinko backend running on http://localhost:${PORT}`);
+  console.log(`🚀 Zinko backend running on http://localhost:${PORT}`);
 });

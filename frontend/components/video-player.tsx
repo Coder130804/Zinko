@@ -5,58 +5,81 @@ import YouTube, { YouTubePlayer } from 'react-youtube'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Play, Pause, Upload, Search, X, Loader2 } from 'lucide-react'
 import { useRoomStore } from '@/lib/store'
+import socket from '@/lib/socket'
 
-const mockSearchResults = [
-  { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up', channel: 'Rick Astley', duration: '3:33', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg' },
-  { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito ft. Daddy Yankee', channel: 'Luis Fonsi', duration: '4:42', thumbnail: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/mqdefault.jpg' },
-  { id: '9bZkp7q19f0', title: 'PSY - Gangnam Style', channel: 'officialpsy', duration: '4:13', thumbnail: 'https://i.ytimg.com/vi/9bZkp7q19f0/mqdefault.jpg' },
-  { id: 'JGwWNGJdvx8', title: 'Ed Sheeran - Shape of You', channel: 'Ed Sheeran', duration: '4:24', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/mqdefault.jpg' },
-  { id: 'RgKAFK5djSk', title: 'Wiz Khalifa - See You Again ft. Charlie Puth', channel: 'Wiz Khalifa', duration: '3:58', thumbnail: 'https://i.ytimg.com/vi/RgKAFK5djSk/mqdefault.jpg' },
-  { id: 'fJ9rUzIMcZQ', title: 'Queen - Bohemian Rhapsody', channel: 'Queen Official', duration: '5:55', thumbnail: 'https://i.ytimg.com/vi/fJ9rUzIMcZQ/mqdefault.jpg' },
-]
+interface YTResult {
+  id: string
+  title: string
+  channel: string
+  thumbnail: string
+}
 
 export function VideoPlayer() {
   const playerRef = useRef<YouTubePlayer | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const isSyncingRef = useRef(false) // prevent feedback loops
 
   const videoUrl = useRoomStore((state) => state.videoUrl)
   const isPlaying = useRoomStore((state) => state.isPlaying)
   const pausedBy = useRoomStore((state) => state.pausedBy)
   const currentUser = useRoomStore((state) => state.currentUser)
+  const users = useRoomStore((state) => state.users)
   const setVideo = useRoomStore((state) => state.setVideo)
   const setPlaying = useRoomStore((state) => state.setPlaying)
   const setCurrentTime = useRoomStore((state) => state.setCurrentTime)
-  const users = useRoomStore((state) => state.users)
 
   const [searchQuery, setSearchQuery] = useState('')
   const [showResults, setShowResults] = useState(false)
   const [searching, setSearching] = useState(false)
-  const [results, setResults] = useState(mockSearchResults)
+  const [results, setResults] = useState<YTResult[]>([])
   const [localFile, setLocalFile] = useState<string | null>(null)
   const [currentTimeDisplay, setCurrentTimeDisplay] = useState('0:00')
   const [duration, setDuration] = useState('0:00')
 
+  // ── REAL YOUTUBE SEARCH ──────────────────────────────────
   const handleSearch = async () => {
     if (!searchQuery.trim()) return
     setSearching(true)
-    await new Promise(resolve => setTimeout(resolve, 600))
-    const filtered = mockSearchResults.filter(r =>
-      r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.channel.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    setResults(filtered.length > 0 ? filtered : mockSearchResults)
-    setSearching(false)
-    setShowResults(true)
+    setShowResults(false)
+
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&q=${encodeURIComponent(searchQuery)}&key=${apiKey}`
+      )
+      const data = await res.json()
+
+      if (data.items) {
+        const formatted: YTResult[] = data.items.map((item: any) => ({
+          id: item.id.videoId,
+          title: item.snippet.title,
+          channel: item.snippet.channelTitle,
+          thumbnail: item.snippet.thumbnails.medium.url,
+        }))
+        setResults(formatted)
+        setShowResults(true)
+      }
+    } catch (err) {
+      console.error('YouTube search failed:', err)
+    } finally {
+      setSearching(false)
+    }
   }
 
-  const handleSelectVideo = (result: typeof mockSearchResults[0]) => {
-    setVideo(`https://www.youtube.com/watch?v=${result.id}`, result.title)
+  // ── SELECT VIDEO ─────────────────────────────────────────
+  const handleSelectVideo = (result: YTResult) => {
+    const url = `https://www.youtube.com/watch?v=${result.id}`
+    setVideo(url, result.title)
     setLocalFile(null)
     setShowResults(false)
     setSearchQuery('')
+
+    // Tell everyone in the room
+    socket.emit('video:select', { videoId: result.id, title: result.title })
   }
 
+  // ── FILE UPLOAD ──────────────────────────────────────────
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -66,46 +89,116 @@ export function VideoPlayer() {
     }
   }
 
+  // ── PLAY / PAUSE ─────────────────────────────────────────
   const handlePlayPause = useCallback(() => {
+    const time = playerRef.current?.getCurrentTime() ?? videoRef.current?.currentTime ?? 0
+
     if (isPlaying) {
       setPlaying(false, currentUser?.name || 'Someone')
-      if (playerRef.current) {
-        playerRef.current.pauseVideo()
-      }
-      if (videoRef.current) {
-        videoRef.current.pause()
-      }
+      playerRef.current?.pauseVideo()
+      videoRef.current?.pause()
+      socket.emit('video:pause', { currentTime: time })
     } else {
       setPlaying(true, null)
-      if (playerRef.current) {
-        playerRef.current.playVideo()
-      }
-      if (videoRef.current) {
-        videoRef.current.play()
-      }
+      playerRef.current?.playVideo()
+      videoRef.current?.play()
+      socket.emit('video:play', { currentTime: time })
     }
   }, [isPlaying, currentUser, setPlaying])
 
+  // ── YOUTUBE EVENTS ───────────────────────────────────────
   const onYouTubeReady = (event: { target: YouTubePlayer }) => {
     playerRef.current = event.target
-    const dur = event.target.getDuration()
-    setDuration(formatTime(dur))
+    setDuration(formatTime(event.target.getDuration()))
+
+    // Ask backend for current sync state (for late joiners)
+    socket.emit('video:sync_request')
   }
 
   const onYouTubeStateChange = (event: { data: number }) => {
+    if (isSyncingRef.current) return // ignore events caused by remote sync
+
+    const time = playerRef.current?.getCurrentTime() ?? 0
+
     if (event.data === 1) {
+      // Playing
       setPlaying(true, null)
+      socket.emit('video:play', { currentTime: time })
     } else if (event.data === 2) {
+      // Paused
       setPlaying(false, currentUser?.name || 'Someone')
+      socket.emit('video:pause', { currentTime: time })
     }
   }
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+  // ── SOCKET LISTENERS ─────────────────────────────────────
+  useEffect(() => {
+    // Someone else selected a video
+    socket.on('video:selected', ({ videoId, title }: { videoId: string; title: string }) => {
+      const url = `https://www.youtube.com/watch?v=${videoId}`
+      setVideo(url, title)
+      setLocalFile(null)
+    })
 
+    // Someone hit play
+    socket.on('video:play', ({ currentTime }: { currentTime: number }) => {
+      isSyncingRef.current = true
+      setPlaying(true, null)
+      if (playerRef.current) {
+        playerRef.current.seekTo(currentTime, true)
+        playerRef.current.playVideo()
+      }
+      if (videoRef.current) {
+        videoRef.current.currentTime = currentTime
+        videoRef.current.play()
+      }
+      setTimeout(() => { isSyncingRef.current = false }, 500)
+    })
+
+    // Someone hit pause
+    socket.on('video:pause', ({ currentTime, by }: { currentTime: number; by: string }) => {
+      isSyncingRef.current = true
+      setPlaying(false, by)
+      if (playerRef.current) {
+        playerRef.current.seekTo(currentTime, true)
+        playerRef.current.pauseVideo()
+      }
+      if (videoRef.current) {
+        videoRef.current.currentTime = currentTime
+        videoRef.current.pause()
+      }
+      setTimeout(() => { isSyncingRef.current = false }, 500)
+    })
+
+    // Someone seeked
+    socket.on('video:seek', ({ currentTime }: { currentTime: number }) => {
+      isSyncingRef.current = true
+      if (playerRef.current) playerRef.current.seekTo(currentTime, true)
+      if (videoRef.current) videoRef.current.currentTime = currentTime
+      setCurrentTime(currentTime)
+      setTimeout(() => { isSyncingRef.current = false }, 500)
+    })
+
+    // Sync state for late joiners
+    socket.on('video:sync', ({ videoId, isPlaying: playing, currentTime }: {
+      videoId: string; isPlaying: boolean; currentTime: number
+    }) => {
+      const url = `https://www.youtube.com/watch?v=${videoId}`
+      setVideo(url, '')
+      setCurrentTime(currentTime)
+      setPlaying(playing, null)
+    })
+
+    return () => {
+      socket.off('video:selected')
+      socket.off('video:play')
+      socket.off('video:pause')
+      socket.off('video:seek')
+      socket.off('video:sync')
+    }
+  }, [setVideo, setPlaying, setCurrentTime])
+
+  // ── TIME TRACKER ─────────────────────────────────────────
   useEffect(() => {
     const interval = setInterval(() => {
       if (playerRef.current && isPlaying) {
@@ -124,6 +217,12 @@ export function VideoPlayer() {
   const getVideoId = (url: string) => {
     const match = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/watch\?.+&v=))([\w-]{11})/)
     return match ? match[1] : null
+  }
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
   return (
@@ -152,7 +251,7 @@ export function VideoPlayer() {
             </button>
           </div>
 
-          {/* Search Results Dropdown */}
+          {/* Search Results */}
           <AnimatePresence>
             {showResults && (
               <motion.div
@@ -181,7 +280,7 @@ export function VideoPlayer() {
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{result.title}</p>
-                        <p className="text-xs text-muted-foreground">{result.channel} • {result.duration}</p>
+                        <p className="text-xs text-muted-foreground">{result.channel}</p>
                       </div>
                     </button>
                   ))}
@@ -191,7 +290,6 @@ export function VideoPlayer() {
           </AnimatePresence>
         </div>
 
-        {/* Upload Button */}
         <button
           onClick={() => fileInputRef.current?.click()}
           className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -199,13 +297,7 @@ export function VideoPlayer() {
           <Upload className="w-4 h-4" />
           Or upload a file
         </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="video/*"
-          onChange={handleFileUpload}
-          className="hidden"
-        />
+        <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileUpload} className="hidden" />
       </div>
 
       {/* Video Area */}
@@ -218,8 +310,9 @@ export function VideoPlayer() {
                 src={localFile}
                 className="w-full h-full object-contain"
                 controls
-                onPlay={() => setPlaying(true, null)}
-                onPause={() => setPlaying(false, currentUser?.name || 'Someone')}
+                onPlay={() => { setPlaying(true, null); socket.emit('video:play', { currentTime: videoRef.current?.currentTime ?? 0 }) }}
+                onPause={() => { setPlaying(false, currentUser?.name || 'Someone'); socket.emit('video:pause', { currentTime: videoRef.current?.currentTime ?? 0 }) }}
+                onSeeked={() => { socket.emit('video:seek', { currentTime: videoRef.current?.currentTime ?? 0 }) }}
                 onTimeUpdate={(e) => {
                   setCurrentTimeDisplay(formatTime(e.currentTarget.currentTime))
                   setDuration(formatTime(e.currentTarget.duration || 0))
@@ -231,11 +324,7 @@ export function VideoPlayer() {
                 opts={{
                   width: '100%',
                   height: '100%',
-                  playerVars: {
-                    autoplay: 0,
-                    modestbranding: 1,
-                    rel: 0,
-                  },
+                  playerVars: { autoplay: 0, modestbranding: 1, rel: 0 },
                 }}
                 onReady={onYouTubeReady}
                 onStateChange={onYouTubeStateChange}
