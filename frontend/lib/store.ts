@@ -87,9 +87,10 @@ export const useRoomStore = create<RoomState>((set) => ({
     }
   }),
   
-  addMessage: (message) => set((state) => ({
-    messages: [...state.messages, message]
-  })),
+ addMessage: (message) => set((state) => {
+  if (state.messages.some((m) => m.id === message.id)) return state
+  return { messages: [...state.messages, message] }
+}),
   
   setVideo: (url, title) => set({ videoUrl: url, videoTitle: title, isPlaying: false, currentTime: 0 }),
   

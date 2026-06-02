@@ -6,7 +6,7 @@ import { Send, Smile } from 'lucide-react'
 import { useRoomStore, type Message } from '@/lib/store'
 import socket from '@/lib/socket'
 
-const emojis = ['😂', '❤️', '🔥', '👏', '😍', '🎉', '💀', '😭', '🤣', '👀', '💯', '✨', '🙌', '😎', '🥺', '😤']
+const emojis = ['😂', '❤️', '🔥', '👏', '😍', '🎉', '💀', '😭', '🤣', '👀', '💯', '✨', '🙌','🫶🏼', '😎', '🥺', '😤','🐤','💐','🌻','🌸','🌷','🌼','🌹']
 
 export function ChatPanel() {
   const messages = useRoomStore((state) => state.messages)
@@ -28,6 +28,9 @@ export function ChatPanel() {
     const handleIncoming = (msg: { id: string; name: string; text: string; timestamp: string }) => {
       // Skip if it's our own message (we already added it optimistically)
       if (msg.name === currentUser?.name) return
+
+      const exists = useRoomStore.getState().messages.some((m) => m.id === msg.id)
+      if (exists) return
 
       addMessage({
         id: msg.id,
@@ -180,7 +183,7 @@ function MessageBubble({
       >
         {message.userName.split(' ').map((n) => n[0]).join('').slice(0, 2)}
       </div>
-      <div className={`max-w-[75%] ${isOwn ? 'items-end' : 'items-start'}`}>
+      <div className={`max-w-[75%] min-w-0 ${isOwn ? 'items-end' : 'items-start'}`}>
         <div className="flex items-center gap-2 mb-1">
           <span className="text-xs font-medium">{message.userName}</span>
           <span className="text-xs text-muted-foreground">
@@ -188,7 +191,7 @@ function MessageBubble({
           </span>
         </div>
         <div
-          className={`px-3 py-2 rounded-2xl text-sm ${
+          className={`px-3 py-2 rounded-2xl text-sm break-all ${
             isOwn
               ? 'bg-primary text-primary-foreground rounded-tr-sm'
               : 'bg-secondary text-foreground rounded-tl-sm'
