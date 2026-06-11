@@ -15,9 +15,11 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*", // update to your Vercel URL in production
+    origin: "*",
     methods: ["GET", "POST"],
   },
+  pingTimeout: 60000,   // wait 60s for pong before declaring dead
+  pingInterval: 25000,  // ping every 25s to keep connection alive
 });
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
