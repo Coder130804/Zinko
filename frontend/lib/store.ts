@@ -35,6 +35,8 @@ export interface RoomState {
   setPlaying: (playing: boolean, pausedBy?: string | null) => void
   setCurrentTime: (time: number) => void
   leaveRoom: () => void
+  setUsers: (users: User[]) => void
+
 }
 
 const userColors = [
@@ -52,11 +54,12 @@ export const useRoomStore = create<RoomState>((set) => ({
   isPlaying: false,
   currentTime: 0,
   pausedBy: null,
-  
+  setUsers: (users) => set({ users }),
+
   setRoom: (roomId, roomCode) => set({ roomId, roomCode }),
-  
+
   setCurrentUser: (user) => set({ currentUser: user }),
-  
+
   addUser: (user) => set((state) => {
     if (state.users.find(u => u.id === user.id)) return state
     return {
@@ -71,7 +74,7 @@ export const useRoomStore = create<RoomState>((set) => ({
       }]
     }
   }),
-  
+
   removeUser: (userId) => set((state) => {
     const user = state.users.find(u => u.id === userId)
     return {
@@ -86,18 +89,18 @@ export const useRoomStore = create<RoomState>((set) => ({
       }] : state.messages
     }
   }),
-  
+
  addMessage: (message) => set((state) => {
   if (state.messages.some((m) => m.id === message.id)) return state
   return { messages: [...state.messages, message] }
 }),
-  
+
   setVideo: (url, title) => set({ videoUrl: url, videoTitle: title, isPlaying: false, currentTime: 0 }),
-  
+
   setPlaying: (playing, pausedBy = null) => set({ isPlaying: playing, pausedBy }),
-  
+
   setCurrentTime: (time) => set({ currentTime: time }),
-  
+
   leaveRoom: () => set({
     roomId: null,
     roomCode: null,

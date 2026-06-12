@@ -22,16 +22,19 @@ export default function RoomPage() {
   const setCurrentUser = useRoomStore((state) => state.setCurrentUser)
   const addUser = useRoomStore((state) => state.addUser)
   const addMessage = useRoomStore((state) => state.addMessage)
+  const setUsers = useRoomStore((state) => state.setUsers)
   const leaveRoom = useRoomStore((state) => state.leaveRoom)
 
   const [copied, setCopied] = useState(false)
   const [showChat, setShowChat] = useState(false)
   const [showNameModal, setShowNameModal] = useState(!currentUser)
   const [name, setName] = useState('')
+  const [isReconnecting, setIsReconnecting] = useState(false)
 
   // Listen for other users joining / leaving
   useEffect(() => {
-    socket.on('user:joined', ({ name: joinedName }: { name: string }) => {
+    socket.on('user:joined', ({ name: joinedName, users: updatedUsers }: { name: string, users: any[] }) => {
+      setUsers(updatedUsers.map((u: any) => ({ id: u.socketId, name: u.name, color: getRandomColor() })))
       addMessage({
         id: crypto.randomUUID(),
         userId: 'system',
@@ -42,7 +45,8 @@ export default function RoomPage() {
       })
     })
 
-    socket.on('user:left', ({ name: leftName }: { name: string }) => {
+    socket.on('user:left', ({ name: leftName, users: updatedUsers }: { name: string, users: any[] }) => {
+      setUsers(updatedUsers.map((u: any) => ({ id: u.socketId, name: u.name, color: getRandomColor() })))
       addMessage({
         id: crypto.randomUUID(),
         userId: 'system',
@@ -53,13 +57,42 @@ export default function RoomPage() {
       })
     })
 
+    // Auto rejoin room after reconnect
+    socket.on('reconnect', () => {
+      console.log('Reconnected! Rejoining room...')
+      setIsReconnecting(false)
+      if (currentUser && roomCode) {
+        socket.emit('room:join', { name: currentUser.name, code: roomCode })
+        socket.emit('video:sync_request')
+      }
+    })
+
+    socket.on('reconnect_attempt', () => {
+      setIsReconnecting(true)
+    })
+
+    socket.on('reconnect_failed', () => {
+      setIsReconnecting(false)
+      addMessage({
+        id: crypto.randomUUID(),
+        userId: 'system',
+        userName: 'System',
+        content: 'Connection lost. Please refresh the page.',
+        timestamp: new Date(),
+        type: 'system',
+      })
+    })
+
     return () => {
       socket.off('user:joined')
       socket.off('user:left')
+      socket.off('reconnect')
+      socket.off('reconnect_attempt')
+      socket.off('reconnect_failed')
     }
-  }, [addMessage])
+  }, [addMessage, setUsers, currentUser, roomCode])
 
-  // Handle someone opening the room link directly (no currentUser in store yet)
+  // Handle direct link join (no currentUser in store)
   const handleJoinRoom = () => {
     if (!name.trim()) return
 
@@ -81,7 +114,6 @@ export default function RoomPage() {
     })
 
     socket.once('room:error', ({ message }) => {
-      // Room not found — send back to home
       alert(message)
       router.push('/')
     })
@@ -114,12 +146,10 @@ export default function RoomPage() {
             </div>
             <span className="font-bold text-lg">Zinko</span>
           </div>
-
           <h2 className="text-xl font-semibold mb-2">Join the Room</h2>
           <p className="text-muted-foreground text-sm mb-6">
             Enter your name to join the watch party and enjoy
           </p>
-
           <input
             type="text"
             value={name}
@@ -129,7 +159,6 @@ export default function RoomPage() {
             onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
             autoFocus
           />
-
           <button
             onClick={handleJoinRoom}
             disabled={!name.trim()}
@@ -144,6 +173,13 @@ export default function RoomPage() {
 
   return (
     <div className="h-screen flex flex-col">
+      {/* Reconnecting Banner */}
+      {isReconnecting && (
+        <div className="bg-yellow-500/20 text-yellow-400 text-sm text-center py-1.5 shrink-0">
+          Connection lost — reconnecting...
+        </div>
+      )}
+
       {/* Top Bar */}
       <header className="shrink-0 px-4 py-3 border-b border-border/50 flex items-center justify-between glass-card">
         <div className="flex items-center gap-4">
@@ -169,7 +205,7 @@ export default function RoomPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowChat(!showChat)}
-            className="md:hidden p-2 rounded-lg hover:bg-secondary transition-colors relative"
+            className="md:hidden p-2 rounded-lg hover:bg-secondary transition-colors"
           >
             <MessageCircle className="w-5 h-5" />
           </button>
@@ -210,7 +246,7 @@ export default function RoomPage() {
           <ChatPanel />
         </div>
 
-        {/* Chat - Mobile Drawer */}
+        {/* Chat - Mobile */}
         {showChat && (
           <motion.div
             initial={{ x: '100%' }}
