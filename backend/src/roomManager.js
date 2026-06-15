@@ -49,16 +49,32 @@ const roomManager = {
     return { room };
   },
 
+  // leaveRoom(code, socketId) {
+  //   const room = rooms.get(code);
+  //   if (!room) return;
+  //   room.users = room.users.filter((u) => u.socketId !== socketId);
+  //   // Clean up empty rooms
+  //   if (room.users.length === 0) {
+  //     rooms.delete(code);
+  //     console.log(`[Room ${code}] Deleted (empty)`);
+  //   }
+  // },
   leaveRoom(code, socketId) {
-    const room = rooms.get(code);
-    if (!room) return;
-    room.users = room.users.filter((u) => u.socketId !== socketId);
-    // Clean up empty rooms
-    if (room.users.length === 0) {
-      rooms.delete(code);
-      console.log(`[Room ${code}] Deleted (empty)`);
-    }
-  },
+  const room = rooms.get(code)
+  if (!room) return
+  room.users = room.users.filter((u) => u.socketId !== socketId)
+
+  if (room.users.length === 0) {
+    // Wait 30 seconds before deleting — gives time for reconnection
+    setTimeout(() => {
+      const currentRoom = rooms.get(code)
+      if (currentRoom && currentRoom.users.length === 0) {
+        rooms.delete(code)
+        console.log(`[Room ${code}] Deleted (empty)`)
+      }
+    }, 30000) // 30 second grace period
+  }
+},
 
   getRoom(code) {
     return rooms.get(code) ?? null;
