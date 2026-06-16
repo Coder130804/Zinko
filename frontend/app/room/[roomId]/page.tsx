@@ -111,6 +111,15 @@ export default function RoomPage() {
       addUser(user)
       setRoom(room.id, room.code)
       setShowNameModal(false)
+
+      //  seed the users list from the room data
+      setUsers(
+        room.users.map((u: { socketId: string; name: string }) => ({
+          id: u.socketId,
+          name: u.name,
+          color: getRandomColor(),
+        }))
+        )
     })
 
     socket.once('room:error', ({ message }) => {
