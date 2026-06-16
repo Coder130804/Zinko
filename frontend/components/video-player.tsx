@@ -152,7 +152,7 @@ export function VideoPlayer() {
         videoRef.current.currentTime = currentTime
         videoRef.current.play()
       }
-      setTimeout(() => { isSyncingRef.current = false }, 500)
+      setTimeout(() => { isSyncingRef.current = false }, 2000)
     })
 
     // Someone hit pause
@@ -167,7 +167,7 @@ export function VideoPlayer() {
         videoRef.current.currentTime = currentTime
         videoRef.current.pause()
       }
-      setTimeout(() => { isSyncingRef.current = false }, 500)
+      setTimeout(() => { isSyncingRef.current = false }, 2000)
     })
 
     // Someone seeked
@@ -176,7 +176,7 @@ export function VideoPlayer() {
       if (playerRef.current) playerRef.current.seekTo(currentTime, true)
       if (videoRef.current) videoRef.current.currentTime = currentTime
       setCurrentTime(currentTime)
-      setTimeout(() => { isSyncingRef.current = false }, 500)
+      setTimeout(() => { isSyncingRef.current = false }, 2000)
     })
 
     // Sync state for late joiners
