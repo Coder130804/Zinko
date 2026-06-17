@@ -290,14 +290,7 @@ export function VideoPlayer() {
           </AnimatePresence>
         </div>
 
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Upload className="w-4 h-4" />
-          Or upload a file
-        </button>
-        <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileUpload} className="hidden" />
+        
       </div>
 
       {/* Video Area */}
