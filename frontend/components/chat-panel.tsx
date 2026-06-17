@@ -6,7 +6,7 @@ import { Send, Smile } from 'lucide-react'
 import { useRoomStore, type Message } from '@/lib/store'
 import socket from '@/lib/socket'
 
-const emojis = ['😂', '😊', '❤️', '🔥', '👏', '😍', '🎉', '💀', '😭', '🤣', '👀', '💯', '✨', '🙌','🫶🏼', '😎', '🥺', '😤','🐤','💐','🌻','🌸','🌷','🌼','🌹']
+const emojis = ['😂', '😊', '❤️', '🔥', '👏', '😍', '🎉', '💀', '😭', '🤣', '👀', '💯', '✨', '🙌','🫶🏼', '😎', '😱', '🤝', '🥹', '👍', '😏', '🤌', '🫡', '🥺', '😤','🐤','💐','🌻','🌸','🌷','🌼','🌹']
 
 export function ChatPanel() {
   const messages = useRoomStore((state) => state.messages)
