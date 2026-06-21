@@ -290,7 +290,7 @@ export function VideoPlayer() {
           </AnimatePresence>
         </div>
 
-        
+
       </div>
 
       {/* Video Area */}
@@ -330,20 +330,20 @@ export function VideoPlayer() {
             <AnimatePresence>
               {!isPlaying && pausedBy && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 flex items-center justify-center bg-black/60"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-13 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
                 >
-                  <div className="glass-card rounded-2xl px-8 py-6 text-center">
-                    <Pause className="w-8 h-8 mx-auto mb-3 text-primary" />
-                    <p className="text-lg font-medium">{pausedBy} paused the playback</p>
+                  <div className="flex items-center gap-3 glass-card rounded-full px-4 py-2 pointer-events-auto shadow-lg">
+                    <Pause className="w-4 h-4 text-primary shrink-0" />
+                    <p className="text-sm font-medium whitespace-nowrap">{pausedBy} paused</p>
                     <button
                       onClick={handlePlayPause}
-                      className="mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-xl hover:glow-primary transition-all flex items-center gap-2 mx-auto"
+                      className="flex items-center gap-1.5 px-3 py-1 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:glow-primary transition-all"
                     >
-                      <Play className="w-4 h-4" />
-                      Resume
+                      <Play className="w-3 h-3" />
+                        Resume
                     </button>
                   </div>
                 </motion.div>
