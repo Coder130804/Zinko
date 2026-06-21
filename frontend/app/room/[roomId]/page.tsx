@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Copy, Check, LogOut, Zap, MessageCircle, X } from 'lucide-react'
 import { useRoomStore, getRandomColor } from '@/lib/store'
 import { VideoPlayer } from '@/components/video-player'
@@ -30,6 +30,29 @@ export default function RoomPage() {
   const [showNameModal, setShowNameModal] = useState(!currentUser)
   const [name, setName] = useState('')
   const [isReconnecting, setIsReconnecting] = useState(false)
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+
+  // Warn before refresh / tab close
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [])
+  // Intercept browser back / swipe-back navigation -> show custom confirm modal
+  useEffect(() => {
+    window.history.pushState(null, '', window.location.href)
+
+    const handlePopState = () => {
+      window.history.pushState(null, '', window.location.href)
+      setShowLeaveConfirm(true)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   // Listen for other users joining / leaving
   useEffect(() => {
@@ -135,6 +158,10 @@ export default function RoomPage() {
   }
 
   const handleLeave = () => {
+    setShowLeaveConfirm(true)
+  }
+
+  const confirmLeave = () => {
     socket.emit('room:leave')
     socket.disconnect()
     leaveRoom()
@@ -281,6 +308,47 @@ export default function RoomPage() {
           </motion.div>
         )}
       </div>
+      {/* Leave Confirmation Modal */}
+      <AnimatePresence>
+        {showLeaveConfirm && (
+        <>
+          <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
+          onClick={() => setShowLeaveConfirm(false)}
+          />
+          <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm"
+          >
+            <div className="glass-card rounded-2xl p-6 mx-4 text-center">
+              <h3 className="text-lg font-semibold mb-2">Leave the room?</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                You&apos;ll be disconnected from the watch party.
+              </p>
+              <div className="flex gap-3">
+                <button
+                onClick={() => setShowLeaveConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl border border-border hover:bg-secondary/50 transition-colors text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                onClick={confirmLeave}
+                className="flex-1 py-2.5 rounded-xl bg-destructive text-destructive-foreground hover:opacity-90 transition-colors text-sm font-medium"
+                >
+                  Leave
+                </button>
+              </div>
+            </div>
+         </motion.div>
+        </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
